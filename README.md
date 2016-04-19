@@ -73,3 +73,5 @@ sjcx [user@example.org]> help
 
 ### Notes
 This software as only been tested on ubuntu 15.10 but may work with other distributions.
+
+If you found this app usefull, I'd be very happy if you'd give some SJCX  : 1G26UPUQdPY33r48CC2FNSkT7XvEPfXAur
