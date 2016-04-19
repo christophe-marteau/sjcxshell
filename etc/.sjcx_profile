@@ -1,0 +1,12 @@
+source "${SJCXSHELL_PATH}/etc/sjcxfunctions.sh" || exit ${?}
+
+PS1="sjcx \\[$(${TPUT_BINARY} bold ; ${TPUT_BINARY} setaf 6)\\][${SJCX_USER}]\\[$(${TPUT_BINARY} sgr0)\\]> "
+alias "sjcxmkdir"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/sjcxmkdir.sh"
+alias "sjcxrmdir"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/sjcxrmdir.sh"
+alias "sjcxls"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/sjcxls.sh"
+alias "sjcxcp"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/sjcxcp.sh"
+alias "sjcxrm"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/sjcxrm.sh"
+alias "help"="${MAN_BINARY} -M ${SJCXSHELL_PATH}/man sjcxshell"
+alias "h"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/minihelp.sh"
+alias "minihelp"="${BASH_BINARY} ${SJCXSHELL_PATH}/bin/minihelp.sh"
+alias "quit"="exit"

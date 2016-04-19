@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# SJCX Shell
+#
+# Author : Christophe Marteau
+# Version : 1.0
+#
+# Realease notes :
+# 19/03/2016 : - Initial version
+
+
+source "$(dirname "$0")/etc/sjcx.conf" || exit ${?}
+source "$(dirname "$0")/etc/sjcxfunctions.sh" || exit ${?}
+
+function usage() {
+  printMsg "usage" "BEGIN usage" "debug" "9"
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "Sjcx shell"
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "usage : ${0} -u <user email>"
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "  -h (--help) : Display this help."
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "  -u (--user) : User email registered in metadisk API"
+  ${ECHO_BINARY} ""
+  printMsg "usage" "END usage" "debug" "9"
+  exit 1
+}
+
+SJCX_USER=""
+
+# Menu
+while [ $# -gt 0 ]
+do
+  case "${1}" in
+    "--user" | "-u" )
+      if [[ "${2}" =~ "^([^@]+@[^@]+)$" ]]
+      then
+        SJCX_USER="${BASH_REMATCH[1]}"
+        if [ -f "${SJCX_HOME}/.${SJCX_USER}" ]
+        then
+          printMsg "sjcxshell" "Using user '${SJCX_USER}'" "debug" "1"
+        else
+          printMsg "sjcxshell" "Unknown email address, please create account first" "error"
+          exit
+        fi
+        shift
+      else
+        printMsg "sjcxshell" "Invalid email address" "error"
+        usage
+      fi
+      ;;
+    *)
+      printMsg "sjcxshell" "Option '${1}' unknown." "error"
+      usage
+      ;;
+    esac
+    shift
+done
+
+if [ -z "${SJCX_USER}" ]
+then
+  printMsg "sjcxshell" "No user provided" "error"
+  usage
+fi
+
+
+
+SJCXSHELL_PATH="$(dirname "${0}")" SJCX_USER="${SJCX_USER}" ${BASH_BINARY} --rcfile ${SJCXSHELL_PATH}/etc/.sjcx_profile

@@ -1,0 +1,185 @@
+.\" Process this file with
+.\" groff -man -Tascii sjcxshell.1
+.\"
+.TH SJCXSHELL 1 "APRIL 2016" Linux "User Manuals"
+.SH NAME
+sjcxshell \- Shell for manipulate sjcx files from metadisk API
+.SH SYNOPSIS
+.B ./sjcxshell -u <user email>
+.P
+Once you are logged into sjcxshell you can use the following commands :
+.RS
+\fBsjcx>\fR sjcxmkdir [-v] <bucket name> [<bucket name>] ...
+.RE
+.RS
+\fBsjcx>\fR sjcxrmdir [-v] <bucket name> [<bucket name>] ...
+.RE
+.RS
+\fBsjcx>\fR sjcxcp [-v] <local file path> [<local file path>] ... sjcx://<bucket>
+.RS
+\fIor:\fR <bucket name>/<remote file> [<bucket name>/<remote file>] ... <local folder> 
+.RE
+\fBsjcx>\fR sjcxls [-aldR] [<bucket>] ... [<bucket]"
+.RE
+.RS
+\fBsjcx>\fR sjcxrm [-vrf] <bucket name>[/<file name>|/*] [<bucket name>[/<file name>|/*]] ...
+.SH DESCRIPTION
+.B sjcxshell
+provides a collection of commands to manipulate files and buckets from the storj metadisk API. You can :
+  * Create one or more buckets with "sjcxmkdir" command
+  * Delete one or more buckets with "sjcxrmdir" command
+  * Copy files from/to storj storage with "sjcxcp" command
+  * List files and buckets with "sjcxls" command
+  * Remove files or buckets with "sjcxrm" command 
+.SH OPTIONS
+.IP "-u <user email>
+Use user email to log in metadisk API
+.SH SUB COMMAND DESCRIPTION
+To create one or more buckets :
+
+.RS
+.B sjcxmkdir [-v] <bucket name> [<bucket name>]
+
+.RS 
+\fB-v\fR : Print some information when adding buckets
+
+.RE
+\fIExample:\fR sjcxmkdir -v bucket1 "my bucket with space" anotherbucket
+
+.RE
+To delete one or more buckets :
+
+.RS
+.B sjcxrmdir [-v] <bucket name> [<bucket name>]
+
+.RS 
+\fB-v\fR : Print some information when removing buckets
+
+.RE
+\fIExample:\fR sjcxrmdir -v bucket1 "my bucket with space" anotherbucket
+
+.RE
+To copy files from/to storj storage :
+
+.RS
+.B sjcxcp [-v] <local file path> [<local file path>] ... sjcx://<bucket>
+.RS
+\fIor:\fR <bucket name>/<remote file> [<bucket name>/<remote file>] ... <local folder>
+
+.RE
+.RS
+\fB-v\fR : Print some information when copying files
+
+.RE
+\fIExamples:\fR
+.RS
+To copy local files to storj storage :
+.RS
+sjcxcp -v localFolder/file1.txt localFolder2/file2.mp4 localFolder3/* sjcx://remoteBucket
+
+.RE
+To copy remote files to local folder :
+.RS
+sjcxcp -v remoteBucket/file1.txt remoteBucket2/file2.mp4 remoteBucket3/file3.avi localFolder
+
+.RE
+.RE
+.RE
+To list files and buckets (by default only list buckets) :
+
+.RS
+.B sjcxls [-aldR] [<bucket>] ... [<bucket]
+
+.RS
+\fB-a\fR : List all attributes for files or buckets
+.RE
+.RS
+\fB-l\fR : List attributes for files or buckets but not IDs
+.RE
+.RS
+\fB-R\fR : List buckets and files
+.RE
+.RS
+\fB-d\fR : List buckets only
+
+.RE
+\fIExamples:\fR
+.RS
+To list all buckets :
+.RS
+sjcxls
+
+.RE
+To list all files in some buckets :
+.RS
+sjcxls -R bucket1 "bucket with spaces"
+
+.RE
+To list all attributes for all files in a bucket 
+.RS
+sjcxls -alR bucket1
+
+
+.RE
+.RE
+.RE
+To remove files and buckets :
+
+.RS
+.B sjcxrm [-vrf] <bucket name>[/<file name>|/*] [<bucket name>[/<file name>|/*]] ...
+
+.RS
+\fB-v\fR : Print some information when removing files or buckets
+.RE
+.RS
+\fB-r\fR : Delete also bucket if empty
+.RE
+.RS
+\fB-f\fR : Delete also bucket even if not empty
+
+.RE
+\fIExamples:\fR
+.RS
+To remove some files in some buckets :
+.RS
+sjcrm bucket1/file1.txt bucket2/file2.mp3
+
+.RE
+To remove all files in a bucket
+.RS
+sjcxrm -r bucket1/*
+
+.RE
+To remove a bucket 
+.RS
+sjcxls -rf bucket1
+
+.SH ENVIRONMENT
+You can launch sjcxshell commands even if you're not in sjcxshell. To do this you must set :
+
+.IP SJCXSHELL_PATH
+The path to the sjcxshell. ($HOME/sjcxshell by default)
+
+.IP SJCX_USER
+The user email used to log in metadisk API
+
+\fIExample:\fR
+.RS
+SJCXSHELL_PATH="/usr/local/sjcxshell" SJCX_USER="user@example.net" sjcxls -alR
+
+
+If non-null the full pathname for an alternate system wide
+.IR foo.conf .
+Overridden by the
+.B -c
+option.
+.SH DIAGNOSTICS
+Verbose messages, debug messages and errors are printed to stderr:
+
+Commands always exit with 0 status code even if it fails. Checks errors messages to catch errors.
+ 
+.SH BUGS
+The command may not work properly with bash reserved characters ...
+
+.SH AUTHOR
+Christophe Marteau <christophe dot marteau at gmail dot com>

@@ -1,0 +1,117 @@
+#!/bin/bash
+
+source "$(dirname "$0")/etc/sjcx.conf" || exit ${?}
+source "$(dirname "$0")/etc/sjcxfunctions.sh" || exit ${?}
+
+function usage() {
+  printMsg "usage" "BEGIN usage" "debug" "9"
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "Storj create user"
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "usage : ${0} -u <user email> -p <user password>"
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "  -h (--help)            : Display this help."
+  ${ECHO_BINARY} ""
+  ${ECHO_BINARY} "  -u (--user|--email|-e) : User email to be registered in storj"
+  ${ECHO_BINARY} "  -p (--password)        : User password to set when registering"
+  ${ECHO_BINARY} "  -o (--only)            : Create local account file only"
+  ${ECHO_BINARY} ""
+  printMsg "usage" "END usage" "debug" "9"
+  exit 1
+}
+
+USER_EMAIL=""
+USER_PASSWORD=""
+
+if [ ${DEBUG} -eq 9 ]
+then
+  CURL_OPT='-v -s -S'
+else
+  CURL_OPT='-s -S'
+fi
+
+LOCAL_ONLY=0
+# Menu
+while [ $# -gt 0 ]
+do
+  case "${1}" in
+    "-u" | "--user" | "--email" | "-e" | "--mail" )
+      if [[ "${2}" =~ "^([^@]+@[^@]+)$" ]]
+      then
+        USER_EMAIL="${BASH_REMATCH[1]}"
+        shift
+      else
+        printMsg "sjcxadduser" "Invalid email address" "error"
+        usage
+      fi
+      ;;
+    "--only" | "-o" )
+      LOCAL_ONLY=1
+      ;;
+    "--password" | "-p" )
+      if [[ "${2}" =~ "^(.+)$" ]]
+      then
+        USER_PASSWORD="${BASH_REMATCH[1]}"
+        shift
+      else
+        printMsg "sjcxadduser" "Invalid email address" "error"
+        usage
+      fi
+      ;;
+    *)
+      printMsg "sjcxadduser" "Option '${1}' unknown." "error"
+      usage
+      ;;
+    esac
+    shift
+done
+
+if [ -z "${USER_EMAIL}" ] || [ -z "${USER_PASSWORD}" ]
+then
+  printMsg "sjcxadduser" "No user email nor user password" "error"
+  usage
+fi
+
+
+printMsg "sjcxadduser" "BEGIN main" "debug" "9"
+
+SHA256_USER_PASSWORD="$( ${ECHO_BINARY} "${USER_PASSWORD}" | ${SHA256SUM_BINARY} | ${AWK_BINARY} '{ print $1 }' )"
+printMsg "sjcxadduser" "Converted password to sha256 : '${SHA256_USER_PASSWORD}'" "debug" "1"
+if [ ${LOCAL_ONLY} -eq 0 ]
+then
+  printMsg "sjcxadduser" "Request : ${CURL_BINARY}  ${CURL_OPT} -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d \"{ \"email\": \"${USER_EMAIL}\", \"password\": \"${SHA256_USER_PASSWORD}\" }\" ${METADISK_API_URL}/users 2>&1" "debug" 1
+  RESPONSE="$( ${CURL_BINARY} ${CURL_OPT} -X POST --header 'Content-Type: application/json' --header 'Accept: application/json' -d "{ \"email\": \"${USER_EMAIL}\", \"password\": \"${SHA256_USER_PASSWORD}\" }" ${METADISK_API_URL}/users 2>&1)"
+  printMsg "sjcxadduser" "Response : ${RESPONSE}" "debug" 1
+
+  if [[ "${RESPONSE}" =~ '\{"activated":([^,]+),"created":"([^"]+)","email":"([^"]+)","id":"([^"]+)"\}' ]]
+  then
+    ACTIVATION_STATE="${BASH_REMATCH[1]}"
+    CREATED_TIMESTAMP="${BASH_REMATCH[2]}"
+    USER_ID="${BASH_REMATCH[4]}"
+    printMsg "sjcxadduser" "User created with id '${USER_ID}' at '${CREATED_TIMESTAMP}' ( Activation state : '${ACTIVATION_STATE}' )"
+    if [ ! -d ${SJCX_HOME} ]
+    then
+      mkdir -p ${SJCX_HOME}
+    fi 
+    ${ECHO_BINARY} "${USER_EMAIL}:${SHA256_USER_PASSWORD}" > "${SJCX_HOME}/.${USER_EMAIL}"
+    ${CHMOD_BINARY} 600 "${SJCX_HOME}/.${USER_EMAIL}"
+  else
+    if [[ "${RESPONSE}" =~ '\{"error":"([^"]+)"\}' ]]
+    then
+      SJCX_ERROR="${BASH_REMATCH[1]}"
+      printMsg "sjcxadduser" "Unable to create user (${SJCX_ERROR})" "error"
+    else
+      printMsg "sjcxadduser" "Unable to create user (${RESPONSE})" "error"
+    fi
+  fi
+else
+  if [ ! -d ${SJCX_HOME} ]
+  then
+    mkdir -p ${SJCX_HOME}
+  fi
+  ${ECHO_BINARY} "${USER_EMAIL}:${SHA256_USER_PASSWORD}" > "${SJCX_HOME}/.${USER_EMAIL}"
+  ${CHMOD_BINARY} 600 "${SJCX_HOME}/.${USER_EMAIL}"
+  printMsg "sjcxadduser" "User created localy with id '${USER_EMAIL}'"
+fi
+printMsg "sjcxadduser" "END main" "debug" "9"
+
